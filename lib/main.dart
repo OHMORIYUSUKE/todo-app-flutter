@@ -45,6 +45,15 @@ class _TodoListPageState extends State<TodoListPage> {
           return Card(
             child: ListTile(
               title: Text(todoList[index]),
+              trailing: IconButton(
+                icon: Icon(Icons.delete), // ゴミ箱アイコン
+                onPressed: () {
+                  // タスクを削除
+                  setState(() {
+                    todoList.removeAt(index);
+                  });
+                },
+              ),
             ),
           );
         },
@@ -83,6 +92,8 @@ class TodoAddPage extends StatefulWidget {
 class _TodoAddPageState extends State<TodoAddPage> {
   // 入力されたテキストをデータとして持つ
   String _text = '';
+  // 警告文
+  String _errorText = '';
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +107,8 @@ class _TodoAddPageState extends State<TodoAddPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // 入力されたテキストを表示
-              Text(_text, style: TextStyle(color: Colors.blue)),
+              // 警告を表示
+              Text(_errorText, style: TextStyle(color: Colors.red)),
               const SizedBox(height: 8),
               // テキスト入力
               TextField(
@@ -115,12 +126,18 @@ class _TodoAddPageState extends State<TodoAddPage> {
                 // 横幅いっぱいに広げる
                 width: double.infinity,
                 // リスト追加ボタン
-                // リスト追加ボタン
                 child: ElevatedButton(
                   onPressed: () {
-                    // "pop"で前の画面に戻る
-                    // "pop"の引数から前の画面にデータを渡す
-                    Navigator.of(context).pop(_text);
+                    if(_text.isEmpty){
+                      setState(() {
+                        // データを変更
+                        _errorText = '入力してください';
+                      });
+                    }else{
+                      // "pop"で前の画面に戻る
+                      // "pop"の引数から前の画面にデータを渡す
+                      Navigator.of(context).pop(_text);
+                    }
                   },
                   child: const Text('リスト追加', style: TextStyle(color: Colors.white)),
                 ),
