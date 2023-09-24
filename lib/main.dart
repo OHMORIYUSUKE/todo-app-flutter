@@ -83,13 +83,23 @@ class PokeList extends StatelessWidget {
 
 // テーマ設定画面
 class ThemeModeSelectionPage extends StatefulWidget {
-  const ThemeModeSelectionPage({Key? key}) : super(key: key);
+  const ThemeModeSelectionPage({
+    Key? key,
+    required this.mode,
+  }) : super(key: key);
+  final ThemeMode mode;
+
   @override
   _ThemeModeSelectionPageState createState() => _ThemeModeSelectionPageState();
 }
 
 class _ThemeModeSelectionPageState extends State<ThemeModeSelectionPage> {
-  ThemeMode _current = ThemeMode.system;
+  late ThemeMode _current;
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.mode;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,24 +110,24 @@ class _ThemeModeSelectionPageState extends State<ThemeModeSelectionPage> {
             ListTile(
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop<ThemeMode>(context, _current),
               ),
             ),
             RadioListTile<ThemeMode>(
               value: ThemeMode.system,
-              groupValue: ThemeMode.system,
+              groupValue: _current,
               title: const Text('System'),
               onChanged: (val) => {setState(() => _current = val!)},
             ),
             RadioListTile<ThemeMode>(
               value: ThemeMode.dark,
-              groupValue: ThemeMode.system,
+              groupValue: _current,
               title: const Text('Dark'),
               onChanged: (val) => {setState(() => _current = val!)},
             ),
             RadioListTile<ThemeMode>(
               value: ThemeMode.light,
-              groupValue: ThemeMode.system,
+              groupValue: _current,
               title: const Text('Light'),
               onChanged: (val) => {setState(() => _current = val!)},
             ),
@@ -129,8 +139,14 @@ class _ThemeModeSelectionPageState extends State<ThemeModeSelectionPage> {
 }
 
 // 設定
-class Settings extends StatelessWidget {
+class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
+  @override
+  _SettingsState createState() => _SettingsState();
+}
+
+class _SettingsState extends State<Settings> {
+  ThemeMode _themeMode = ThemeMode.system;
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -138,10 +154,16 @@ class Settings extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.lightbulb),
           title: const Text('Dark/Light Mode'),
-          onTap: () => {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => const ThemeModeSelectionPage(),
-            )),
+          trailing: Text((_themeMode == ThemeMode.system)
+              ? 'System'
+              : (_themeMode == ThemeMode.dark ? 'Dark' : 'Light')),
+          onTap: () async {
+            var ret = await Navigator.of(context).push<ThemeMode>(
+              MaterialPageRoute(
+                builder: (context) => ThemeModeSelectionPage(mode: _themeMode),
+              ),
+            );
+            setState(() => _themeMode = ret!);
           },
         ),
       ],
@@ -229,83 +251,3 @@ class PokeDetail extends StatelessWidget {
   }
 }
 
-// 状態を持つ
-class TodoAddPage extends StatefulWidget {
-  @override
-  _TodoAddPageState createState() => _TodoAddPageState();
-}
-
-// リスト追加画面用Widget
-class _TodoAddPageState extends State<TodoAddPage> {
-  // 入力されたテキストをデータとして持つ
-  String _text = '';
-  // 警告文
-  String _errorText = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('リスト追加'),
-      ),
-      body: Container(
-        // 余白を付ける
-        padding: const EdgeInsets.all(64),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // 警告を表示
-              Text(_errorText, style: TextStyle(color: Colors.red)),
-              const SizedBox(height: 8),
-              // テキスト入力
-              TextField(
-                // 入力されたテキストの値を受け取る（valueが入力されたテキスト）
-                onChanged: (String value) {
-                  // データが変更したことを知らせる（画面を更新する）
-                  setState(() {
-                    // データを変更
-                    _text = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-              Container(
-                // 横幅いっぱいに広げる
-                width: double.infinity,
-                // リスト追加ボタン
-                child: ElevatedButton(
-                  onPressed: () {
-                    if(_text.isEmpty){
-                      setState(() {
-                        // データを変更
-                        _errorText = '入力してください';
-                      });
-                    }else{
-                      // "pop"で前の画面に戻る
-                      // "pop"の引数から前の画面にデータを渡す
-                      Navigator.of(context).pop(_text);
-                    }
-                  },
-                  child: const Text('リスト追加', style: TextStyle(color: Colors.white)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                // 横幅いっぱいに広げる
-                width: double.infinity,
-                // キャンセルボタン
-                child: TextButton(
-                  // ボタンをクリックした時の処理
-                  onPressed: () {
-                    // "pop"で前の画面に戻る
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('キャンセル'),
-                ),
-              ),
-            ],
-        ),
-      ),
-    );
-  }
-}
