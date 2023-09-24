@@ -1,26 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import './theme_mode.dart';
 
-void main() {
-  // 最初に表示するWidget
-  runApp(PokeApp());
-}
+class ThemeModeNotifier extends ChangeNotifier {
+  late ThemeMode _themeMode;
 
-class PokeApp extends StatelessWidget {
-  ThemeMode mode = ThemeMode.system;
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      // アプリ名
-      title: 'My Todo App',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: mode,
-      // リスト一覧画面を表示
-      home: TopPage(),
-    );
+  ThemeModeNotifier() {
+    _init();
+  }
+
+  ThemeMode get mode => _themeMode;
+
+  void _init() async {
+    _themeMode = await loadThemeMode();
+    notifyListeners();
+  }
+
+  void update(ThemeMode nextMode) {
+    _themeMode = nextMode;
+    saveThemeMode(nextMode);
+    notifyListeners();
   }
 }
 
+void main() {
+  // 最初に表示するWidget
+  runApp(ChangeNotifierProvider(
+    create: (context) => ThemeModeNotifier(),
+    child: const PokeApp(),
+  ));
+}
+
+class PokeApp extends StatefulWidget {
+  const PokeApp({Key? key}) : super(key: key);
+  @override
+  _PokeAppState createState() => _PokeAppState();
+}
+
+class _PokeAppState extends State<PokeApp> {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeModeNotifier>(
+      builder: (context, mode, child) => MaterialApp(
+        title: 'Pokemon Flutter',
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: mode.mode,
+        home: const TopPage(),
+      ),
+    );
+  }
+}
 // カード
 class PokeListItem extends StatelessWidget {
   const PokeListItem({Key? key, required this.index}) : super(key: key);
@@ -164,6 +194,7 @@ class _SettingsState extends State<Settings> {
               ),
             );
             setState(() => _themeMode = ret!);
+            await saveThemeMode(_themeMode);
           },
         ),
       ],
